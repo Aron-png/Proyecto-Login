@@ -11,8 +11,10 @@ router.post("/", (req, res)=>{
             }
             ))
     }
-    //Si llena todos los campos
-    res.status(200).jsonResponse(200,{message:"User created successfully"})
+    //Si llena todos los campos /  .json() - sirve para exportar de otro archivo
+    //El método jsonResponse no es una función del objeto res, 
+    //sino una función independiente que exportas desde otro archivo. 
+    res.status(200).json(jsonResponse(200, { message: "User created successfully" }));
 });
 
 module.exports = router;
