@@ -6,6 +6,13 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 
 const port = process.env.PORT || 3100;
+/*Coneccion de bd con la app */
+async function main(){
+    await mongoose.connect(process.env.DB_CONNECTION);
+    console.log("Connected to mongoDB");
+}
+main().catch(console.error);
+/*Coneccion de bd con la app */
 
 /*Configuracion de rutas: */
 app.use(cors());

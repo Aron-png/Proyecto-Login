@@ -26,13 +26,14 @@ export default function Signup(){
                     "Content-Type":"application/json"
                     },
                     body: JSON.stringify({
-                        UserName,
-                        Name,
-                        Password
+                        username: UserName,
+                        name: Name,
+                        password: Password
                     }),
             });
             if(response.ok){
                 console.log("El usuario se ah creado satisfactoriamente");
+                console.log("Datos enviados del frontend:", { UserName, Name, Password });
                 setErrorResponsed("");
                 goto("/Login");
             }else{
