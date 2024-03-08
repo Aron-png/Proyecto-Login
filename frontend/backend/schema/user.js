@@ -42,5 +42,18 @@ UserSchema.pre('save',function(next){
     }
 })
 
+//¿Qué pasa si ya ingresamos un nombre de usuario que ya teniamos?
+UserSchema.methods.usernameExist = async function (username){
+    //Encuentra a uno con el mismo valor = .find({username})
+    const result = await Mongoose.model('User').findOne({username});
+    return !!result;//Si encuentra 1, verdadero = 1.
+}
+
+//Para Comparar el password que vamos a utilizar en el login.
+UserSchema.methods.comparePassword = async function (password, hash){
+    const same = await bcrypt.compare(password, hash);
+    return same;
+}
+
 //Vamos a exportar el esquema
 module.exports = Mongoose.model("User",UserSchema);
