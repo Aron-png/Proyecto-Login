@@ -26,14 +26,14 @@ export default function Login(){
                     "Content-Type":"application/json"
                     },
                     body: JSON.stringify({
-                        UserName,
-                        Password
+                        username: UserName,
+                        password: Password
                     }),
             });
             if(response.ok){
                 console.log("Login accedido");
                 setErrorResponsed("");
-                goto("/Login");
+                goto("/");
             }else{
                 console.log("Something went wrong");
                 const json = (await response.json()) as AuthResponseError;

@@ -1,26 +1,39 @@
 const router = require("express").Router();
 const { jsonResponse } = require("../lib/jsonResponse");
+const User = require("../schema/user");
+const getUserinfo = require("../lib/getUserInfo");
+
 //Con la siguiente función imprimes algo en tu pag
-router.post("/", (req, res)=>{
-    const {UserName, Password} = req.body;
+router.post("/", async (req, res)=>{
+    const { username, password } = req.body;
     //Si no hay nada en username o name o password
-    if(!!!UserName || !!!Password){
+    if(!!!username || !!!password){
         return res.status(400).json(jsonResponse(
             400,{
                 error:"Field are required"
             }
             ))
     }
-    //Autenticar el usuario
-    const accessToken = "access_token";
-    const refreshToken = "refresh_token";
-    const user = {
-        id: 1,
-        name: 'John Doe',
-        UserName:'asdf'
-    };
+    //findOne busca si existe ese "usuario", registrado en la bd
+    const user = await User.findOne({username});
+    //Comprueba si user existe
+    if(user){
+        //password = ingresado y user.password = la contraseña q tengo en la bd.
+        const correct = await user.comparePassword(password, user.password);
+        //Comprueba si la contraseña es correcta
+        if(correct){
+            //Autenticar el usuario
+            const accessToken = user.createAccessToken();
+            const refreshToken = await user.createRefreshToken();
 
-    res.status(200).json(jsonResponse(200, { user, accessToken, refreshToken }));
+            //El user: getUserinfo(user) -> para darle solo el usuario y no otros datos sensibles.
+            res.status(200).json(jsonResponse(200, { user: getUserinfo(user), accessToken, refreshToken }));
+        }else{
+            return res.status(400).json(jsonResponse(400,{error: "User or password incorrect 2"}));
+        }
+    }else{
+        return res.status(400).json(jsonResponse(400,{error: "User or password incorrect 1"}));
+    }
 });
 
 module.exports = router;

@@ -5,7 +5,7 @@ const User = require("../schema/user");
 //Con la siguiente función imprimes algo en tu pag
 router.post("/", async (req, res)=>{
     const { username, name, password } = req.body;
-    console.log("Los datos recibidos del frontend", req.body);
+
     //Si no hay nada en username o name o password, no llena todos los campos
     if(!!!username || !!!name || !!!password){
         return res.status(400).json(jsonResponse(
@@ -18,6 +18,7 @@ router.post("/", async (req, res)=>{
     try {
         /*Crear usuario en la bd de mongodb*/
         const user = new User();
+        //usernameExist ya lo hemos definido en el user, verifica si ya existe el username.
         const exists = await user.usernameExist(username);
         if(exists){
             return res.status(400).json(jsonResponse(400,{error:"Username already exists"}))
