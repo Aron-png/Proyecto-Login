@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
-
+//¿Qué hace?
+//Nos da un token = si el accesstoken venció, nos dará el refreshToken.
 function sign(payload, isAccessToken){
     //Acá tenemos una función donde debe recibir el refresh ó el access token
     //según la situación, isAccessToken verifica si tiene el AccessToken

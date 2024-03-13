@@ -32,8 +32,6 @@ export default function Signup(){
                     }),
             });
             if(response.ok){
-                console.log("El usuario se ah creado satisfactoriamente");
-                console.log("Datos enviados del frontend:", { UserName, Name, Password });
                 setErrorResponsed("");
                 goto("/Login");
             }else{

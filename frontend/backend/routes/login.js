@@ -29,10 +29,10 @@ router.post("/", async (req, res)=>{
             //El user: getUserinfo(user) -> para darle solo el usuario y no otros datos sensibles.
             res.status(200).json(jsonResponse(200, { user: getUserinfo(user), accessToken, refreshToken }));
         }else{
-            return res.status(400).json(jsonResponse(400,{error: "User or password incorrect 2"}));
+            return res.status(400).json(jsonResponse(400,{error: "User or password incorrect"}));
         }
     }else{
-        return res.status(400).json(jsonResponse(400,{error: "User or password incorrect 1"}));
+        return res.status(400).json(jsonResponse(400,{error: "User or password incorrect"}));
     }
 });
 

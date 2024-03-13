@@ -4,6 +4,7 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth} from "../auth/AuthProvider";
 import { API_URL } from "../auth/constants";
 import { AuthResponseError } from "../types/types";
+import { AuthResponse } from "../types/types";
 // Importar los estilos de Bootstrap
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -33,7 +34,13 @@ export default function Login(){
             if(response.ok){
                 console.log("Login accedido");
                 setErrorResponsed("");
-                goto("/");
+                //Libreria = AuthResponse y AuthResponseError
+                //Su función se explica en ../auth/AuthProvider
+                const json = (await response.json()) as AuthResponse;
+                if(json.body.accessToken && json.body.refreshToken){
+                    auth.saveUser(json);
+                    goto("/dashboard");
+                }
             }else{
                 console.log("Something went wrong");
                 const json = (await response.json()) as AuthResponseError;
