@@ -1,7 +1,10 @@
 const express = require('express');
-const cors = require('cors');//habilitar la conexión de los dominios de back y front
+//habilitar la conexión de los dominios de back y front
+const cors = require('cors');
 const app = express();
 const mongoose = require('mongoose');
+//Algunas rutas deben ser protegidas x el accesstoken.
+const authenticate = require('./auth/authenticate');
 
 require('dotenv').config();
 
@@ -19,9 +22,9 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/api/signup",require("./routes/signup"));
-app.use("/api/user",require("./routes/user"));
+app.use("/api/user", authenticate, require("./routes/user"));
 app.use("/api/login",require("./routes/login"));
-app.use("/api/todos",require("./routes/todos"));
+app.use("/api/todos", authenticate, require("./routes/todos"));
 app.use("/api/refreshToken",require("./routes/refreshToken"));
 app.use("/api/signout",require("./routes/signout"));
 /*Configuracion de rutas. */

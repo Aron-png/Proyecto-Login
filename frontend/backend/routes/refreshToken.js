@@ -1,4 +1,5 @@
 const { generateAccessToken } = require("../auth/generateTokens");
+const {verifyRefreshToken} = require("../auth/verifyTokens")
 const getTokenFromHeader = require("../auth/getTokenFromHeader");
 const { jsonResponse } = require("../lib/jsonResponse");
 const Token = require("../schema/token");
@@ -36,8 +37,8 @@ router.post("/", async (req, res)=>{
             //Si encuentro el token, ahora verificará que ése token sea válido
             const payload = verifyRefreshToken(found.token);
             if(payload){
-                const accessToken = generateAccessToken(payload);
-                return res.status(200).send(jsonResponse(200,{accessToken}))
+                const accessToken = generateAccessToken(payload.user);
+                return res.status(200).json(jsonResponse(200,{accessToken}))
             }else{
                 return res.status(401).send(jsonResponse(401,{error:"Unauthorized"}))
             }
@@ -48,7 +49,7 @@ router.post("/", async (req, res)=>{
     }else{
         res.status(401).send(jsonResponse(401,{error: "Unauthorized"}));
     }
-    res.send("refreshToken");
+    
 });
 
 module.exports = router;

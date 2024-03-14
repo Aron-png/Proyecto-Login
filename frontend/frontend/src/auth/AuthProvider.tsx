@@ -22,7 +22,9 @@ const AuthContext = createContext({
     isAuthenticated: false,
     getAccessToken: () => {},//definido como objeto
     saveUser: (userData: AuthResponse) => {},//tmb
-    getRefreshToken: () => {}//tmb
+    getRefreshToken: () => {},
+    //Puede devolver User o indefinido, visto en types
+    getUser: () => ({} as User|undefined),
 })
 
 //      AuthProvider
@@ -67,7 +69,9 @@ export function AuthProvider({children}:AuthProviderProps){
         getUserInfo 
             Retorna información del usuario.
     */
-    useEffect(()=>{},[]);
+    useEffect(()=>{
+        checkAuth();
+    },[]);
 
     async function requestNewAccessToken(refreshToken: String){
         try {
@@ -105,10 +109,11 @@ export function AuthProvider({children}:AuthProviderProps){
             });
             if(response.ok){
                 const json = await response.json();
+                console.log("RESPUESTA",response);
                 if(json.error){
                     throw new Error(json.error);
                 }
-                return json;
+                return json.body;
                 
             }else{
                 throw new Error(response.statusText);
@@ -129,6 +134,7 @@ export function AuthProvider({children}:AuthProviderProps){
             //El usuario está autenticado
         }else{
             //El usuario NO está autenticado
+            //Ahora pediré el refreshtoken para acceder datos del usuario
             const token = getRefreshToken();
             if(token){
                 //Si no accessToken, lo actualizo con refreshToken.
@@ -138,9 +144,7 @@ export function AuthProvider({children}:AuthProviderProps){
                     //para éso, otra petición http -> getUserInfo
                     const userInfo = await getUserInfo(newAccessToken);
                     if(userInfo){
-                        saveSessionInfo(
-                            userInfo, newAccessToken, token
-                        );
+                        saveSessionInfo(userInfo, newAccessToken, token);
                     }
                 }
             }
@@ -163,10 +167,10 @@ export function AuthProvider({children}:AuthProviderProps){
     Si el Token existe, dame su refreshToken.
     */
     function getRefreshToken():string | null{
-        const token = localStorage.getItem("token");
-        if(token){
-            const {refreshToken} = JSON.parse(token);
-            return refreshToken;
+        const tokenData = localStorage.getItem("token");
+        if(tokenData){
+            const token = JSON.parse(tokenData);//Pasarlo a JSON
+            return token;
         }
         return null;
     }
@@ -194,8 +198,14 @@ export function AuthProvider({children}:AuthProviderProps){
             userData.body.refreshToken
         );
     }
-
-    return <AuthContext.Provider value={{isAuthenticated, getAccessToken, saveUser, getRefreshToken }}>
+    /*
+    Si te has logeado, a travéz del backend, te retorna el nombre del usuario logeado.
+    */
+   function getUser(){
+    return user;
+   }
+   //Retornamos la funciones y varaibles q necesitemos
+    return <AuthContext.Provider value={{isAuthenticated, getAccessToken, saveUser, getRefreshToken, getUser }}>
         {children}
     </AuthContext.Provider>
 }
