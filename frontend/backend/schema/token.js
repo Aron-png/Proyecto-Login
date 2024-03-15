@@ -1,7 +1,7 @@
-const Mongoose = require("mongoose");
+const mongoose = require("mongoose");
 //Ésto es un esquema para los Token, como el usuario
-const TokenSchema = new Mongoose.Schema({
+const TokenSchema = new mongoose.Schema({
     id: {type: Object},
     token: {type: String, require: true},
 });
-module.exports = Mongoose.model("Token",TokenSchema);
+module.exports = mongoose.model("Token",TokenSchema);

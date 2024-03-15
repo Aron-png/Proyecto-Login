@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {useAuth} from "../auth/AuthProvider";
 import { API_URL } from "../auth/constants";
+import PortalLayout from "../layout/PortalLayout";
 /*
 Aquí vamos a tener información de los To do's
 */
@@ -89,6 +90,7 @@ con eventos de formularios válidos.
     }
 
     return <div>
+        <PortalLayout>
         <h1>Dashboard de {auth.getUser()?.name || ""}</h1>
         <form onSubmit={handleSubmit}>
             <input type="text" placeholder="Nuevo To do..." onChange=
@@ -102,6 +104,7 @@ con eventos de formularios válidos.
             <div key={todo._id}>{todo.title}</div>
             ))
         }
+        </PortalLayout>
     </div>;
 
 }

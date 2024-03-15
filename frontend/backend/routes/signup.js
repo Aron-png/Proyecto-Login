@@ -24,7 +24,7 @@ router.post("/", async (req, res)=>{
             return res.status(400).json(jsonResponse(400,{error:"Username already exists"}))
         }
         const newUser = new User({username, name, password})
-        newUser.save();
+        await newUser.save();
         /*Crear usuario en la bd de mongodb*/
 
         //Imprime en consola en la pag web

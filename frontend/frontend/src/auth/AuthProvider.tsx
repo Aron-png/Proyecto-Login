@@ -25,6 +25,7 @@ const AuthContext = createContext({
     getRefreshToken: () => {},
     //Puede devolver User o indefinido, visto en types
     getUser: () => ({} as User|undefined),
+    signOut: () => {},
 })
 
 //      AuthProvider
@@ -48,6 +49,8 @@ export function AuthProvider({children}:AuthProviderProps){
     const [accessToken, setaccessToken] = useState<string>("");
         //user = Si te has pasado el login, guarda la info del usuario
     const [user, setUser] = useState<User>();
+        //Si está cargando la página, mostrar un ícono de "cargando"
+    const [isLoading, setIsLoading] = useState(true);
     /*
     ¿Por qué cada vez que el usuario se ah registrado, 
     se pierde con cada actualizar página?
@@ -109,7 +112,7 @@ export function AuthProvider({children}:AuthProviderProps){
             });
             if(response.ok){
                 const json = await response.json();
-                console.log("RESPUESTA",response);
+                console.log("RESPUESTA",json.body);
                 if(json.error){
                     throw new Error(json.error);
                 }
@@ -132,6 +135,12 @@ export function AuthProvider({children}:AuthProviderProps){
     async function checkAuth(){
         if(accessToken){
             //El usuario está autenticado
+            const userInfo = await getUserInfo(accessToken);
+            if(userInfo){
+                setIsLoading(false);
+                saveSessionInfo(userInfo, accessToken, getRefreshToken()!);
+                return;
+            }
         }else{
             //El usuario NO está autenticado
             //Ahora pediré el refreshtoken para acceder datos del usuario
@@ -144,11 +153,21 @@ export function AuthProvider({children}:AuthProviderProps){
                     //para éso, otra petición http -> getUserInfo
                     const userInfo = await getUserInfo(newAccessToken);
                     if(userInfo){
+                        setIsLoading(false);
                         saveSessionInfo(userInfo, newAccessToken, token);
+                        return;
                     }
                 }
             }
         }
+        setIsLoading(false);
+    }
+    //Método para cerrar sesión
+    function signOut(){
+        setaccessToken("");//Ya no tenemos el accessToken
+        setisAuthenticated(false);//Ya no estamos autenticados
+        setUser(undefined);
+        localStorage.removeItem("token");//Eliminar nuestro token del localStorage
     }
 
     /*
@@ -205,8 +224,12 @@ export function AuthProvider({children}:AuthProviderProps){
     return user;
    }
    //Retornamos la funciones y varaibles q necesitemos
-    return <AuthContext.Provider value={{isAuthenticated, getAccessToken, saveUser, getRefreshToken, getUser }}>
-        {children}
+    return <AuthContext.Provider value={{isAuthenticated, getAccessToken, saveUser, 
+    getRefreshToken, getUser, signOut }}>
+        {
+            //Lógica para saber si está cargando, mostrar una pestaña de cargando.
+        }
+        {isLoading ? <div>Loading... </div> : children}
     </AuthContext.Provider>
 }
 
