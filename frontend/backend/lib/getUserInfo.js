@@ -3,7 +3,7 @@ function getUserinfo(user){
     return {
         username: user.name,
         name: user.name,
-        id: user.id,
+        id: user.id || user._id,
     }
 }
 module.exports = getUserinfo;
