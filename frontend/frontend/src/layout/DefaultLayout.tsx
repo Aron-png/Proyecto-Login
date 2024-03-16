@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import React from 'react';
 /*
 En éste archivo se tendra:
     - el header, encabezado de la página web.
@@ -16,17 +17,18 @@ export default function DefaultLayout({children} : DefaultLayoutProps){
                 <nav>
                     <ul>
                         <li>
-                            <Link to="/">Home</Link>
+                            <Link to="/" className="no-underline">Home</Link>
                         </li>
                         <li>
-                            <Link to="/login">Login</Link>
+                            <Link to="/login" className="no-underline">Login</Link>
                         </li>
                         <li>
-                            <Link to="/signup">Sign up</Link>
+                            <Link to="/signup" className="no-underline">Sign up</Link>
                         </li>
                     </ul>
                 </nav>
             </header>
+            
             <main>{children}</main>
         </>
     )

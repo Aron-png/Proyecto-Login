@@ -65,3 +65,10 @@ a {
   color: #a94442;
   padding: 10px;
 }
+/*
+Agegamos
+*/
+.no-underline {
+  color: inherit;
+  text-decoration: none;
+}

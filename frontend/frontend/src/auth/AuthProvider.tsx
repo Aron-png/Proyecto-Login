@@ -112,7 +112,6 @@ export function AuthProvider({children}:AuthProviderProps){
             });
             if(response.ok){
                 const json = await response.json();
-                console.log("RESPUESTA",json.body);
                 if(json.error){
                     throw new Error(json.error);
                 }

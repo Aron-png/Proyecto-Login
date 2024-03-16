@@ -28,12 +28,7 @@ export default function PortalLayout({children}:{children:React.ReactNode}){
     <header>
         <nav>
             <ul>
-                <li>
-                    <Link to="/dashboard">Dashboard</Link>
-                </li>
-                <li>
-                    <Link to="/me">Profile</Link>
-                </li>
+                
                 <li>
                     {
                         //Vamos a tener el usuario y el username

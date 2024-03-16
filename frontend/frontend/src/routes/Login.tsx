@@ -60,24 +60,32 @@ export default function Login(){
 
     return <>
     <DefaultLayout>
-        <form className="form" onSubmit={handleSubmit}>
-            <h1>Login</h1>
-            
-            <label>Username</label>
-            <input type="text"
-            value={UserName}
-            onChange={(e)=>setUserName(e.target.value)}
-            />
+        <div className="container">
+                <div className="row justify-content-center">
+                    <div className="col-md-6">
+                        <form className="mt-5 p-4 border rounded shadow" onSubmit={handleSubmit}>
+                            <h1 className="mb-4">Login</h1>
 
-            <label>Password</label>
-            <input type="password"
-            value={Password}
-            onChange={(e)=>setPassword(e.target.value)}
-            />
+                            <div className="mb-3">
+                                <label htmlFor="name" className="form-label">Username</label>
+                                <input type="text" id="name" className="form-control" value={UserName} onChange={(e)=>setUserName(e.target.value)} />
+                            </div>
 
-            <button>Login</button>
-            {!!ErrorResponsed && <div className="alert alert-danger mt-3">{ErrorResponsed}</div>}
-        </form>
+                            <div className="mb-3">
+                                <label htmlFor="password" className="form-label">Password</label>
+                                <input type="password" id="password" className="form-control" value={Password} onChange={(e) => setPassword(e.target.value)} />
+                            </div>
+
+                            <div className="d-grid">
+                                <button type="submit" className="btn btn-primary">Login</button>
+                            </div>
+                            
+                            {!!ErrorResponsed && <div className="alert alert-danger mt-3">{ErrorResponsed}</div>}
+                            
+                        </form>
+                    </div>
+                </div>
+            </div>
     </DefaultLayout>
     </>;
 }
