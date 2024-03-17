@@ -13,6 +13,7 @@ export default function Home() {
         <>
             <DefaultLayout>
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      
             <div className="boxes">
     <div className="box">
         <div></div>
@@ -39,8 +40,10 @@ export default function Home() {
         <div></div>
     </div>
 </div>
+</div>
+
       
-    </div>
+    
             
   
             </DefaultLayout>

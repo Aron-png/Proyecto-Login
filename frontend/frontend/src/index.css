@@ -71,4 +71,5 @@ Agegamos
 .no-underline {
   color: inherit;
   text-decoration: none;
+  text-transform: none;
 }
