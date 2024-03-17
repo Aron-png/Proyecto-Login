@@ -215,3 +215,10 @@
   left: 81%;
   line-height: 6.2px;
 }
+.radio-wrapper:nth-child(3) .btn {
+  width: 125px; /* Ajusta el ancho según sea necesario */
+}
+.letraNormal {
+  text-transform: none; /*Pone la letra normal (no Mayuscula todo) */
+}
+
