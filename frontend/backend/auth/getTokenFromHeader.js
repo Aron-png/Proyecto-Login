@@ -1,5 +1,5 @@
-//Extraer el AccessToken del encabezado de autorización de las solicitudes HTTP
-//Tomar  token mandamos el header de autorizacion visto en auth/AuthProvider -> en la función: requestNewAccessToken.
+//ÉSta función es utilizada en backend -> routes/refreshToken.js (Ahí lo explica mejor)
+//Extraer el RefreshToken del encabezado de autorización de las solicitudes HTTP
 function getTokenFromHeader(headers){
     if(headers && headers.authorization){
         const parted = headers.authorization.split(' ');

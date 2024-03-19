@@ -64,7 +64,8 @@ export function AuthProvider({children}:AuthProviderProps){
         sin registrarse. Por ende,
                 
         refreshNewAccessToken
-            Se encarga de enviar una solicitud al servidor 
+            Si el Token No existe en el localStorage,
+            se encarga de enviar una solicitud al servidor 
             para REFRESCAR el token de acceso (AccessToken) 
             utilizando un token de actualización (RefreshToken)
                 Si todo bien:
@@ -75,7 +76,8 @@ export function AuthProvider({children}:AuthProviderProps){
     useEffect(()=>{
         checkAuth();
     },[]);
-
+//requestNewAccessToken es una función que se utiliza para obtener un nuevo 
+//accessToken utilizando un refreshToken previamente obtenido.
     async function requestNewAccessToken(refreshToken: String){
         try {
             const response = await fetch(`${API_URL}/refreshToken`,{
@@ -132,20 +134,24 @@ export function AuthProvider({children}:AuthProviderProps){
     registrado.
     */
     async function checkAuth(){
+        
         if(accessToken){
-            //El usuario está autenticado
+            //El usuario está autenticado o registrado en login
             const userInfo = await getUserInfo(accessToken);
             if(userInfo){
                 setIsLoading(false);
+                //"!" indica que la función nunca devolverá un valor
+                //null o undefined
                 saveSessionInfo(userInfo, accessToken, getRefreshToken()!);
                 return;
             }
         }else{
-            //El usuario NO está autenticado
-            //Ahora pediré el refreshtoken para acceder datos del usuario
+            //El usuario NO está autenticado o registrado en login
+            //Ahora pediré el refreshtoken para luego
+            //obtener el accessToken a partir del requestNewAccessToken(token)
             const token = getRefreshToken();
             if(token){
-                //Si no accessToken, lo actualizo con refreshToken.
+                //Si no hay accessToken, lo actualizo con requestNewAccessToken
                 const newAccessToken = await requestNewAccessToken(token);
                 if(newAccessToken){
                     //Necesito obtener información del usuario
@@ -182,7 +188,7 @@ export function AuthProvider({children}:AuthProviderProps){
     }
     /*
                 getRefreshToken
-    Si el Token existe, dame su refreshToken.
+    Si el Token existe en el localStorage, dame su refreshToken.
     */
     function getRefreshToken():string | null{
         const tokenData = localStorage.getItem("token");

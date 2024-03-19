@@ -12,29 +12,41 @@ se encarga de "auth/AuthProvider" y necesita de 2 peticiones
     - user.js
 Del refreshToken se encarga de...
 
-    auth/getTokenFromHeader:
-Nosotros vamos a necesitar el token mandamos el header de autorizacion visto
-en auth/AuthProvider -> en la función: requestNewAccessToken. 
+        auth/getTokenFromHeader:
+req.body.token = Es el headers, contenido del cuerpo de la solicitud http:
+(visto en auth/AuthProvider -> en la función: requestNewAccessToken)...
+const response = await fetch(`${API_URL}/refreshToken`,{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json",
+                "Authorization":`Bearer ${refreshToken}`,
+            },
+Pero no podemos hacer ésto, por éso creamos el getTokenFromHeader
+Obtenemos el RefreshToken del header de autorizacion.
 
-    función del refreshToken -> findOne({token: refreshToken}):
-Luego, buscamos el token dentro de la base de datos
 
-    auth/verifiTokens:
-Finalmente, tenemos que ver si el token es válido, lo decodifica y ven si son iguales
+        auth/verifiTokens:
+Vemos que el RefreshToken sea válido, lo decodifica y ven si son iguales.
+
+        auth/generateAccessToken:
+Te genera un accessToken a partir del usuario.
     
 */
 router.post("/", async (req, res)=>{
     const refreshToken = getTokenFromHeader(req.headers);
-    //Existe un refreshToken en la bd?
+    console.log("refresh, ",refreshToken);
+    //Extraer el refreshToken del frontend
     if(refreshToken){
         try {
-            //Función para encontrar el refreshToken en la base de datos.
+            //findOne: Función para encontrar el refreshToken en la base de datos.
             const found = await Token.findOne({token: refreshToken});
             if(!found){
                 //No está autorizado
                 return res.status(401).send(jsonResponse(401,{error:"Unauthorized"}))
             }
-            //Si encuentro el token, ahora verificará que ése token sea válido
+            //Si encuentro el token, lo decodifica y luego lo compara para ver si son iguales.
+            //Si lo son, el refreshToken esta "autenticado".
+            
             const payload = verifyRefreshToken(found.token);
             if(payload){
                 const accessToken = generateAccessToken(payload.user);
