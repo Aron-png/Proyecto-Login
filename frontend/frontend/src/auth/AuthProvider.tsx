@@ -70,14 +70,15 @@ export function AuthProvider({children}:AuthProviderProps){
             utilizando un token de actualización (RefreshToken)
                 Si todo bien:
                     Devuelve el token de acceso (accessToken)
+            En resumen, se utiliza para obtener un nuevo 
+            accessToken utilizando el refreshToken.
         getUserInfo 
             Retorna información del usuario.
     */
     useEffect(()=>{
         checkAuth();
     },[]);
-//requestNewAccessToken es una función que se utiliza para obtener un nuevo 
-//accessToken utilizando un refreshToken previamente obtenido.
+
     async function requestNewAccessToken(refreshToken: String){
         try {
             const response = await fetch(`${API_URL}/refreshToken`,{
@@ -176,16 +177,21 @@ export function AuthProvider({children}:AuthProviderProps){
     }
 
     /*
-                getAccessToken
     Esta funcion es lo equivalente a un getter en programación orientado a objetos
     Permite que los datos se obtengan de forma segura y controlada:
     De que forma? encapsula los datos, ocultando los detalles de su implementación
     y cómo se calculan dichos valores.
-    Los principios de encapsulamiento, abstracción, seguridad y flexibilidad
+    Los principios de encapsulamiento, abstracción, seguridad y flexibilidad.
+    Ésto es útil si queremos info que vamos a utilizar de otro lado, x ejem:
+    El dashboard necesitamos pintar el nombre del usuario y el accessToken
+    para llamadas http: getAccessToken y getUser
     */
     function getAccessToken(){
         return accessToken;
     }
+    function getUser(){
+        return user;
+       }
     /*
                 getRefreshToken
     Si el Token existe en el localStorage, dame su refreshToken.
@@ -211,6 +217,7 @@ export function AuthProvider({children}:AuthProviderProps){
     */
     function saveSessionInfo(userInfo: User, accessToken: string, refreshToken: string){
         setaccessToken(accessToken);
+        console.log("AccessToken ",accessToken);
         localStorage.setItem("token",JSON.stringify(refreshToken));
         setisAuthenticated(true);
         setUser(userInfo);
@@ -222,12 +229,36 @@ export function AuthProvider({children}:AuthProviderProps){
             userData.body.refreshToken
         );
     }
-    /*
-    Si te has logeado, a travéz del backend, te retorna el nombre del usuario logeado.
-    */
-   function getUser(){
-    return user;
-   }
+   /*
+        Recoger los To do's de otros usuarios por orden:
+   
+    //Retorna los accessTokens de los demás usuarios
+    async function getAllAccessToken(accessToken:string) {
+        try {
+            const response = await fetch(`${API_URL}/allRefreshTokens`,{
+                method:"GET",
+                headers:{
+                    "Content-Type":"application/json",
+                    "Authorization":`Bearer ${accessToken}`,
+                },
+            });
+            if(response.ok){
+                const json = await response.json();
+                if(json.error){
+                    throw new Error(json.error);
+                }
+                return json.body;
+                
+            }else{
+                throw new Error(response.statusText);
+            }
+        } catch (error) {
+            console.log(error);
+            return null;
+        }
+    }
+    //Retorna los To do's de los demás usuarios
+*/
    //Retornamos la funciones y varaibles q necesitemos
     return <AuthContext.Provider value={{isAuthenticated, getAccessToken, saveUser, 
     getRefreshToken, getUser, signOut }}>

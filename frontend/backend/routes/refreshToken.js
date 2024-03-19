@@ -34,7 +34,6 @@ Te genera un accessToken a partir del usuario.
 */
 router.post("/", async (req, res)=>{
     const refreshToken = getTokenFromHeader(req.headers);
-    console.log("refresh, ",refreshToken);
     //Extraer el refreshToken del frontend
     if(refreshToken){
         try {

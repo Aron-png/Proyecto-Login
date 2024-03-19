@@ -14,25 +14,19 @@ router.get('/', async (req, res) => {
     }
 
     try {
-        console.log("1");
         const found = await Token.findOne({token: refreshToken});
-        console.log("2");
         if(!found){
             //No está autorizado
             return res.status(401).send(jsonResponse(401,{error:"Unauthorized"}))
         }
         //Si encuentro el token, lo decodifica y luego lo compara para ver si son iguales.
         //Si lo son, el refreshToken esta "autenticado".
-        console.log("3");
         const payload = verifyRefreshToken(found.token);
-        console.log("4");
         if (!payload) {
             return res.status(401).json({ error: 'Unauthorized' });
         }
-        console.log("5");
         // Obtener el ID del usuario autenticado desde el token de refresh
         const userId = payload.user.id;
-        console.log("6");
         // Buscar todos los usuarios excepto el usuario autenticado
         const users = await User.find({ _id: { $ne: userId } });
 

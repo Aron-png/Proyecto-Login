@@ -1,17 +1,17 @@
 const router = require("express").Router();
 const Todo = require("../schema/todo")
 
-router.get("/", async (req, res)=>{
+router.get("/", async (req, res) => {
     try {
-        const todos = await Todo.find({idUser: req.user.id});
-        if(todos){
-            res.json(todos);//Vamos a regresar todos los todos
-        }else{
-            res.status(400).json({error:"No todos found"})
+        const todos = await Todo.find({ idUser: req.user.id ||req.user._id });
+        if (!todos || todos.length === 0) {
+            
+            return res.status(200).json({ mensaje: "No se encontraron To do's para este usuario" });
         }
-        
+        res.json(todos); // Devuelve los todos encontrados
     } catch (error) {
-        console.log(error);
+        console.error("Error al buscar todos:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
     }
 });
 
