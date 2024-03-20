@@ -88,7 +88,7 @@ export function AuthProvider({children}:AuthProviderProps){
     */
     useEffect(()=>{
         checkAuth();//Ésto va primero
-        RefreshToDo();//Ésto va segundo
+        
     },[]);
 
     async function requestNewAccessToken(refreshToken: String){
@@ -171,6 +171,7 @@ export function AuthProvider({children}:AuthProviderProps){
                     //para éso, otra petición http -> getUserInfo
                     const userInfo = await getUserInfo(newAccessToken);
                     if(userInfo){
+                        RefreshToDo();//Llama a los To Do's de los demás usuarios
                         setIsLoading(false);
                         saveSessionInfo(userInfo, newAccessToken, token);
                         return;
@@ -234,7 +235,6 @@ export function AuthProvider({children}:AuthProviderProps){
     */
     function saveSessionInfo(userInfo: User, accessToken: string, refreshToken: string){
         setaccessToken(accessToken);
-        console.log("AccessToken ",accessToken);
         localStorage.setItem("token",JSON.stringify(refreshToken));
         setisAuthenticated(true);
         setUser(userInfo);
@@ -252,7 +252,7 @@ export function AuthProvider({children}:AuthProviderProps){
     //Retorna los accessTokens de los demás usuarios
     async function getAllAccessToken(refreshToken: String) {
         try {
-            const response = await fetch(`${API_URL}/allRefreshTokens`,{
+            const response = await fetch(`${API_URL}/allAccessTokens`,{
                 method:"GET",
                 headers:{
                     "Content-Type":"application/json",
@@ -264,7 +264,7 @@ export function AuthProvider({children}:AuthProviderProps){
                 if(json.error){
                     throw new Error(json.error);
                 }
-                return json.body;
+                return json.accessTokens;
                 
             }else{
                 throw new Error(response.statusText);
@@ -277,7 +277,7 @@ export function AuthProvider({children}:AuthProviderProps){
     //Retorna los To do's de los demás usuarios
     async function getAllToDo(accessToken:string) {
         try {
-            const response = await fetch(`${API_URL}/allRefreshTokens`,{
+            const response = await fetch(`${API_URL}/todos`,{
                 method:"GET",
                 headers:{
                     "Content-Type":"application/json",
@@ -289,7 +289,7 @@ export function AuthProvider({children}:AuthProviderProps){
                 if(json.error){
                     throw new Error(json.error);
                 }
-                return json.body;
+                return json;
                 
             }else{
                 throw new Error(response.statusText);
@@ -304,22 +304,27 @@ export function AuthProvider({children}:AuthProviderProps){
   async function RefreshToDo() {
     try {
       // Obtiene todos los refresh tokens y sus datos asociados
-      const allRefreshToken = await getAllAccessToken(getRefreshToken()!);
+      const YouRefreshToken:string | null = getRefreshToken()
+      const allAccessToken = await getAllAccessToken(YouRefreshToken!);
       
       // Verifica que hayan access tokens disponibles
-      if (allRefreshToken.accessTokens.length > 0) {
+      if (allAccessToken.length > 0) {
         const newToDos: ToDo[] = [];
         // Itera sobre cada access token y obtiene los ToDos asociados
-        await Promise.all(allRefreshToken.accessTokens.map(async (item: string) => {
-          const userName= await getUserInfo(item);
-          const todos = await getAllToDo(item);
-          newToDos.push({
-            name:   userName.name,
-            TodoString: todos.map((obj: { title: string }) => obj.title)
+        await Promise.all(allAccessToken.map(async (item: string) => {
+
+            const userName= await getUserInfo(item);//saca el nombre
+            const todos = await getAllToDo(item);//saca el OBJETO To do's
+            newToDos.push({
+              name:   userName.name,
+              TodoString: todos.map((obj: { title: string }) => obj.title)
+              //map: recorre el objeto To Do y llama al "title"
+              //porque ahí se encuentra el string del usuario
             })
         }));
         // Actualiza el estado con los nuevos ToDos obtenidos
         setAllToDoFinally(newToDos);
+        console.log("Todos los To Do's, ",newToDos);
       } else {
         console.log("No hay access tokens disponibles.");
       }

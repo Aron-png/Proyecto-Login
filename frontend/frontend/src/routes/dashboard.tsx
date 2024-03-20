@@ -6,7 +6,7 @@ import PortalLayout from "../layout/PortalLayout";
 Aquí vamos a tener información de los To do's
 */
 //Define las propiedades de los to dos
-interface Todo{
+interface MyTodo{
     _id: string,
     title: string,
     completed: boolean,
@@ -14,7 +14,7 @@ interface Todo{
 }
 export default function Dashboard(){
     //para guardar los to dos
-    const [todos, setTodos] = useState<Todo[]>([]);
+    const [todos, setTodos] = useState<MyTodo[]>([]);
     const [title, setTitle] = useState("");
     const auth = useAuth();
 
@@ -104,6 +104,8 @@ con eventos de formularios válidos.
             <div key={todo._id}>{todo.title}</div>
             ))
         }
+        
+        
         </PortalLayout>
     </div>;
 
