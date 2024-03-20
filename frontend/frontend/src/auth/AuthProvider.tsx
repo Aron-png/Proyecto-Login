@@ -1,6 +1,6 @@
 // Se importan los hooks useContext, createContext, useState y useEffect de React.
 import { useContext, createContext, useState, useEffect } from "react";
-import type { AuthResponse, AccessTokenResponse, User } from "../types/types";
+import type { AuthResponse, AccessTokenResponse, User, ToDo } from "../types/types";
 import { API_URL } from "./constants";
 
 /*
@@ -26,7 +26,16 @@ const AuthContext = createContext({
     //Puede devolver User o indefinido, visto en types
     getUser: () => ({} as User|undefined),
     signOut: () => {},
+    getAllToDoUsers: () => {},
 })
+
+// Define el tipo para el array de ToDos
+/*
+type ToDo = {
+    name: string;
+    TodoString: string;
+  }
+*/
 
 //      AuthProvider
 /*
@@ -46,11 +55,13 @@ valor actual de isAuthenticated a sus hijos.>>
 export function AuthProvider({children}:AuthProviderProps){
     //Puedo entrar a la pág sin usar login? False = isAuthenticated
     const [isAuthenticated, setisAuthenticated] = useState(false);
+    
     const [accessToken, setaccessToken] = useState<string>("");
         //user = Si te has pasado el login, guarda la info del usuario
     const [user, setUser] = useState<User>();
         //Si está cargando la página, mostrar un ícono de "cargando"
     const [isLoading, setIsLoading] = useState(true);
+    const [allToDo, setAllToDoFinally] = useState<ToDo[]>([]);
     /*
     ¿Por qué cada vez que el usuario se ah registrado, 
     se pierde con cada actualizar página?
@@ -76,7 +87,8 @@ export function AuthProvider({children}:AuthProviderProps){
             Retorna información del usuario.
     */
     useEffect(()=>{
-        checkAuth();
+        checkAuth();//Ésto va primero
+        RefreshToDo();//Ésto va segundo
     },[]);
 
     async function requestNewAccessToken(refreshToken: String){
@@ -183,8 +195,10 @@ export function AuthProvider({children}:AuthProviderProps){
     y cómo se calculan dichos valores.
     Los principios de encapsulamiento, abstracción, seguridad y flexibilidad.
     Ésto es útil si queremos info que vamos a utilizar de otro lado, x ejem:
-    El dashboard necesitamos pintar el nombre del usuario y el accessToken
-    para llamadas http: getAccessToken y getUser
+    El routes/dashboard necesitamos pintar el nombre del usuario y el accessToken
+    para llamadas http y todos los Todo's de los usuarios: 
+        getAccessToken, getUser y getAllToDoUsers
+    
     */
     function getAccessToken(){
         return accessToken;
@@ -192,6 +206,9 @@ export function AuthProvider({children}:AuthProviderProps){
     function getUser(){
         return user;
        }
+    function getAllToDoUsers(){
+        return allToDo;
+    }
     /*
                 getRefreshToken
     Si el Token existe en el localStorage, dame su refreshToken.
@@ -231,9 +248,34 @@ export function AuthProvider({children}:AuthProviderProps){
     }
    /*
         Recoger los To do's de otros usuarios por orden:
-   
+   */
     //Retorna los accessTokens de los demás usuarios
-    async function getAllAccessToken(accessToken:string) {
+    async function getAllAccessToken(refreshToken: String) {
+        try {
+            const response = await fetch(`${API_URL}/allRefreshTokens`,{
+                method:"GET",
+                headers:{
+                    "Content-Type":"application/json",
+                    "Authorization":`Bearer ${refreshToken}`,
+                },
+            });
+            if(response.ok){
+                const json = await response.json();
+                if(json.error){
+                    throw new Error(json.error);
+                }
+                return json.body;
+                
+            }else{
+                throw new Error(response.statusText);
+            }
+        } catch (error) {
+            console.log(error);
+            return null;
+        }
+    }
+    //Retorna los To do's de los demás usuarios
+    async function getAllToDo(accessToken:string) {
         try {
             const response = await fetch(`${API_URL}/allRefreshTokens`,{
                 method:"GET",
@@ -257,11 +299,37 @@ export function AuthProvider({children}:AuthProviderProps){
             return null;
         }
     }
-    //Retorna los To do's de los demás usuarios
-*/
+    //  Conecta los getAllToDo y getAllAccessToken para retornar los ToDo's
+    //  Función asincrónica para refrescar los ToDos de los otros usuarios
+  async function RefreshToDo() {
+    try {
+      // Obtiene todos los refresh tokens y sus datos asociados
+      const allRefreshToken = await getAllAccessToken(getRefreshToken()!);
+      
+      // Verifica que hayan access tokens disponibles
+      if (allRefreshToken.accessTokens.length > 0) {
+        const newToDos: ToDo[] = [];
+        // Itera sobre cada access token y obtiene los ToDos asociados
+        await Promise.all(allRefreshToken.accessTokens.map(async (item: string) => {
+          const userName= await getUserInfo(item);
+          const todos = await getAllToDo(item);
+          newToDos.push({
+            name:   userName.name,
+            TodoString: todos.map((obj: { title: string }) => obj.title)
+            })
+        }));
+        // Actualiza el estado con los nuevos ToDos obtenidos
+        setAllToDoFinally(newToDos);
+      } else {
+        console.log("No hay access tokens disponibles.");
+      }
+    } catch (error) {
+      console.error("Error al refrescar los ToDos:", error);
+    }
+  }
    //Retornamos la funciones y varaibles q necesitemos
     return <AuthContext.Provider value={{isAuthenticated, getAccessToken, saveUser, 
-    getRefreshToken, getUser, signOut }}>
+    getRefreshToken, getUser, signOut, getAllToDoUsers }}>
         {
             //Lógica para saber si está cargando, mostrar una pestaña de cargando.
         }
