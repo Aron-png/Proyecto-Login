@@ -5,6 +5,7 @@ const Token = require("../schema/token");
 const getTokenFromHeader = require('../auth/getTokenFromHeader');
 const { verifyRefreshToken } = require('../auth/verifyTokens');
 const { generateAccessToken } = require("../auth/generateTokens");
+const { jsonResponse } = require("../lib/jsonResponse");
 
 router.get('/', async (req, res) => {
     const refreshToken = getTokenFromHeader(req.headers);
