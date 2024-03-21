@@ -315,7 +315,7 @@ export function AuthProvider({children}:AuthProviderProps){
 
             const userName= await getUserInfo(item);//saca el nombre
             const todos = await getAllToDo(item);//saca el OBJETO To do's
-            console.log("1",todos)
+            
             if(Array.isArray(todos)){
                 newToDos.push({
                     name:   userName.name,

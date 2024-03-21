@@ -5,8 +5,8 @@ router.get("/", async (req, res) => {
     try {
         const todos = await Todo.find({ idUser: req.user.id ||req.user._id });
         if (!todos || todos.length === 0) {
-            
-            return res.status(200).json({ mensaje: "No se encontraron To do's para este usuario" });
+            //No se encontraron Todo's para el usuario
+            return res.json([]);
         }
         res.json(todos); // Devuelve los todos encontrados
     } catch (error) {

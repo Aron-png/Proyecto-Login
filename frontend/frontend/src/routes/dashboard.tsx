@@ -18,11 +18,9 @@ export default function Dashboard(){
     const [todos, setTodos] = useState<MyTodo[]>([]);
     const [title, setTitle] = useState("");
     const auth = useAuth();
-    const [ArrayTodos,setArrayTodos] = useState<JSX.Element[]>([]);
 
     useEffect(()=>{
         loadTodos();
-        isTodo();
     },[]);
 /*
 (e: React.FormEvent<HTMLFormElement>): Este es el parámetro de la función. 
@@ -44,7 +42,6 @@ con eventos de formularios válidos.
                 headers:{
                     "Content-Type":"application/json",
                     Authorization: `Bearer ${auth.getAccessToken()}`,
-
                 },
                 body:JSON.stringify({
                     title,
@@ -55,14 +52,11 @@ con eventos de formularios válidos.
                 //Si tenemos bien la información, la tenemos que transformar.
                 const json = await response.json();
                 setTodos([json, ...todos]);
-            }else{
-                //Mostrar un error de conexión en la web
             }
-            const data = await response.json();
-            setTodos(data);    
+              
 
         } catch (error) {
-            
+            console.error("Error al buscar todos:", error);
         }
         
     }
@@ -80,25 +74,15 @@ con eventos de formularios válidos.
                 //Si tenemos bien la información, la tenemos que transformar.
                 const json = await response.json();
                 setTodos(json);
-            }else{
-                //Mostrar un error de conexión en la web
             }
-            const data = await response.json();
-            setTodos(data);    
+             
 
         } catch (error) {
-            
+            console.error("Error al buscar todos:", error);
         }
         
     }
-    function isTodo(){
-        const temp:JSX.Element[] = []
-        todos.map((todo)=>(
-            temp.push(<div key={todo._id}>{todo.title}</div>)
-            ))
-        setArrayTodos(temp);
-    }
-
+    
     return <div>
         <PortalLayout>
         <h1>Dashboard de {auth.getUser()?.name || ""}</h1>
@@ -110,7 +94,9 @@ con eventos de formularios válidos.
                 value={title}/>
         </form>
         {
-            ArrayTodos
+            todos.map((todo)=>(
+                <div key={todo._id}>{todo.title}</div>))
+                
         }
         
         
