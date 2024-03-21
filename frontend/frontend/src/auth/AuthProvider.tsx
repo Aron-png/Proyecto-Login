@@ -88,7 +88,7 @@ export function AuthProvider({children}:AuthProviderProps){
     */
     useEffect(()=>{
         checkAuth();//Ésto va primero
-        
+        RefreshToDo();//Llama a los To Do's de los demás usuarios
     },[]);
 
     async function requestNewAccessToken(refreshToken: String){
@@ -171,7 +171,7 @@ export function AuthProvider({children}:AuthProviderProps){
                     //para éso, otra petición http -> getUserInfo
                     const userInfo = await getUserInfo(newAccessToken);
                     if(userInfo){
-                        RefreshToDo();//Llama a los To Do's de los demás usuarios
+                        
                         setIsLoading(false);
                         saveSessionInfo(userInfo, newAccessToken, token);
                         return;
@@ -315,16 +315,21 @@ export function AuthProvider({children}:AuthProviderProps){
 
             const userName= await getUserInfo(item);//saca el nombre
             const todos = await getAllToDo(item);//saca el OBJETO To do's
-            newToDos.push({
-              name:   userName.name,
-              TodoString: todos.map((obj: { title: string }) => obj.title)
-              //map: recorre el objeto To Do y llama al "title"
-              //porque ahí se encuentra el string del usuario
-            })
+            console.log("1",todos)
+            if(Array.isArray(todos)){
+                newToDos.push({
+                    name:   userName.name,
+                    TodoString: todos.map((obj: { title: string }) => obj.title),
+                    TodayDate: todos.map((obj: { createdAt: Date }) => obj.createdAt)
+                    //map: recorre el objeto To Do y llama al "title"
+                    //porque ahí se encuentra el string del usuario
+                  })
+            }
+            
         }));
         // Actualiza el estado con los nuevos ToDos obtenidos
         setAllToDoFinally(newToDos);
-        console.log("Todos los To Do's, ",newToDos);
+        console.log("2",newToDos)
       } else {
         console.log("No hay access tokens disponibles.");
       }

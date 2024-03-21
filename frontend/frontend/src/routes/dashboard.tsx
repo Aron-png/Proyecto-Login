@@ -11,15 +11,18 @@ interface MyTodo{
     title: string,
     completed: boolean,
     idUser:string,
+    createdAt: Date
 }
 export default function Dashboard(){
     //para guardar los to dos
     const [todos, setTodos] = useState<MyTodo[]>([]);
     const [title, setTitle] = useState("");
     const auth = useAuth();
+    const [ArrayTodos,setArrayTodos] = useState<JSX.Element[]>([]);
 
     useEffect(()=>{
         loadTodos();
+        isTodo();
     },[]);
 /*
 (e: React.FormEvent<HTMLFormElement>): Este es el parámetro de la función. 
@@ -88,6 +91,13 @@ con eventos de formularios válidos.
         }
         
     }
+    function isTodo(){
+        const temp:JSX.Element[] = []
+        todos.map((todo)=>(
+            temp.push(<div key={todo._id}>{todo.title}</div>)
+            ))
+        setArrayTodos(temp);
+    }
 
     return <div>
         <PortalLayout>
@@ -100,9 +110,7 @@ con eventos de formularios válidos.
                 value={title}/>
         </form>
         {
-            todos.map((todo)=>(
-            <div key={todo._id}>{todo.title}</div>
-            ))
+            ArrayTodos
         }
         
         

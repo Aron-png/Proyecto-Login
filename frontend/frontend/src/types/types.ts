@@ -33,5 +33,6 @@ export interface AccessTokenResponse{
 }
 export interface ToDo{
     name: string;
-    TodoString: string;
+    TodoString: string[];
+    TodayDate: Date[];
 }

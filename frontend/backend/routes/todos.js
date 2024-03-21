@@ -23,16 +23,18 @@ router.post("/", async (req, res)=>{
     }
     try {
         //Guardar en nuevo todo que creemos
-        //Necesitamos crear un nuevo Schema
         const todo = new Todo({
             title: req.body.title,
             completed:false,
             idUser: req.user.id,
+            createdAt: Date.now() // Establecer createdAt en la fecha y hora actuales
         });
         const newTodo = await todo.save();
         res.json(newTodo);
     } catch (error) {
-        
+        // Manejar cualquier error que ocurra durante la creación de la tarea
+        console.error("Error al crear la tarea:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
     }
     
 });
