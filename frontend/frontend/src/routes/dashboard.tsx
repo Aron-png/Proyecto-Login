@@ -124,21 +124,27 @@ export default function Dashboard(){
     // first call to quick sort
     function AllToDoOrganize(){
         var item = auth.getAllToDoUsers();
+        //Otros usuarios
         item.forEach((i) => {
-            i.TodayDate.forEach((y) => {
+            i.TodayDate.forEach((y,index) => {
                 const fechaUTC = new Date(y);
                 TodoOrganize.time.push(fechaUTC);
                 TodoOrganize.name.push(i.name);
+                TodoOrganize.text.push(i.TodoString[index]);
             });
-    
-        i.TodoString.forEach((z) => {
-            TodoOrganize.text.push(z);
         });
-        var sortedArray = quickSort(TodoOrganize.time, 0, TodoOrganize.time.length - 1);
+        //MyToDo
+        todos.forEach((i)=>{
+            const fechaUTC = new Date(i.createdAt);
+            TodoOrganize.time.push(fechaUTC);
+            TodoOrganize.name.push("Tú :");
+            TodoOrganize.text.push(i.title);
+
+        });
         console.log("1 ", sortedArray);
         console.log("2 ", TodoOrganize);
-    });
-    
+        var sortedArray = quickSort(TodoOrganize.time, 0, TodoOrganize.time.length - 1);
+        
     }
     
     
