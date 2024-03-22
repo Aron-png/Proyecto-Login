@@ -22,8 +22,11 @@ export default function Dashboard(){
 
     useEffect(()=>{
         loadTodos();
-        AllToDoOrganize();
     },[]);
+    useEffect(() => {
+        AllToDoOrganize();
+        console.log("rpta: ",TodoOrganize);
+    }, [todos]);// Actualiza TodoOrganize cuando cambia todos
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -119,34 +122,36 @@ export default function Dashboard(){
                 quickSort(items, index, right);
             }
         }
-        return items;
     }
     // first call to quick sort
     function AllToDoOrganize(){
-        var item = auth.getAllToDoUsers();
+        const newTodoOrganize = {
+            time: [] as Date[],
+            text: [] as string[],
+            name: [] as string[]
+        };
         //Otros usuarios
-        item.forEach((i) => {
+        auth.getAllToDoUsers().forEach((i) => {
             i.TodayDate.forEach((y,index) => {
                 const fechaUTC = new Date(y);
-                TodoOrganize.time.push(fechaUTC);
-                TodoOrganize.name.push(i.name);
-                TodoOrganize.text.push(i.TodoString[index]);
+                newTodoOrganize.time.push(fechaUTC);
+                newTodoOrganize.name.push(i.name);
+                newTodoOrganize.text.push(i.TodoString[index]);
             });
         });
+        console.log("1 ", auth.getAllToDoUsers());
         //MyToDo
         todos.forEach((i)=>{
             const fechaUTC = new Date(i.createdAt);
-            TodoOrganize.time.push(fechaUTC);
-            TodoOrganize.name.push("Tú :");
-            TodoOrganize.text.push(i.title);
-
+            newTodoOrganize.time.push(fechaUTC);
+            newTodoOrganize.name.push("Tú");
+            newTodoOrganize.text.push(i.title);
         });
-        console.log("1 ", sortedArray);
-        console.log("2 ", TodoOrganize);
-        var sortedArray = quickSort(TodoOrganize.time, 0, TodoOrganize.time.length - 1);
-        
+        console.log("2 ",newTodoOrganize);
+        quickSort(newTodoOrganize.time, 0, newTodoOrganize.time.length - 1);
+        // Elimina y Actualiza el estado TodoOrganize
+        setTodoOrganize(newTodoOrganize); 
     }
-    
     
     return <div>
         <PortalLayout>
@@ -159,9 +164,13 @@ export default function Dashboard(){
                 value={title}/>
         </form>
         {
+        /*
             todos.map((todo, index)=>(
                 <div key={index}>Tú: {todo.title} a las {todo.createdAt.toString()}</div>))
-                
+        */  TodoOrganize.text.map((text, index) => (
+            <div key={index}>{TodoOrganize.name[index]}:  
+            {text} a las {TodoOrganize.time[index].toString()}</div>
+            ))
         }
         
         

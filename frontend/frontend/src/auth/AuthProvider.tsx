@@ -36,8 +36,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     useEffect(() => {
         checkAuth();
-        RefreshToDo();
     }, []);
+    useEffect(()=>{
+        RefreshToDo();
+        console.log("respondeme, ",allToDo);
+    }, [allToDo])
 
     async function requestNewAccessToken(refreshToken: string) {
         try {
@@ -210,6 +213,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     
                 }));
                 setAllToDoFinally(newToDos);
+                
                 }
             }else {
                 console.log("No hay access tokens disponibles.");
