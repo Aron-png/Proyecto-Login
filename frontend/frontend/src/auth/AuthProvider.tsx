@@ -210,7 +210,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     
                 }));
                 setAllToDoFinally(newToDos);
-                console.log("2", newToDos)
                 }
             }else {
                 console.log("No hay access tokens disponibles.");

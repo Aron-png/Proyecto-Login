@@ -2,10 +2,6 @@ import { useEffect, useState } from "react";
 import {useAuth} from "../auth/AuthProvider";
 import { API_URL } from "../auth/constants";
 import PortalLayout from "../layout/PortalLayout";
-/*
-Aquí vamos a tener información de los To do's
-*/
-//Define las propiedades de los to dos
 interface MyTodo{
     _id: string,
     title: string,
@@ -14,27 +10,26 @@ interface MyTodo{
     createdAt: Date
 }
 export default function Dashboard(){
-    //para guardar los to dos
+    
     const [todos, setTodos] = useState<MyTodo[]>([]);
     const [title, setTitle] = useState("");
     const auth = useAuth();
+    const [TodoOrganize, setTodoOrganize] = useState({
+        time: [] as Date[],
+        text: [] as string[],
+        name: [] as string[]
+    });
 
     useEffect(()=>{
         loadTodos();
+        AllToDoOrganize();
     },[]);
-/*
-(e: React.FormEvent<HTMLFormElement>): Este es el parámetro de la función. 
-"e" es un objeto de tipo React.FormEvent, que representa el evento de envío 
-del formulario.  HTMLFormElement es el tipo del elemento que está siendo enviado, 
-es decir, el formulario HTML. Al proporcionar el tipo, TypeScript puede realizar 
-comprobaciones de tipo estático para garantizar que la función solo se use 
-con eventos de formularios válidos.
-*/
+
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         createTodo();
     }
-    //La llamada http para poder conectarnos a nuestra API y crear un nuevo todo
+    //crear un nuevo To Do's
     async function createTodo(){
         try {
             const response = await fetch(`${API_URL}/todos`,{
@@ -49,7 +44,6 @@ con eventos de formularios válidos.
             });
 
             if(response.ok){
-                //Si tenemos bien la información, la tenemos que transformar.
                 const json = await response.json();
                 setTodos([json, ...todos]);
             }
@@ -60,6 +54,7 @@ con eventos de formularios válidos.
         }
         
     }
+    //llama los To Do's
     async function loadTodos(){
         try {
             const response = await fetch(`${API_URL}/todos`,{
@@ -71,7 +66,6 @@ con eventos de formularios válidos.
             });
 
             if(response.ok){
-                //Si tenemos bien la información, la tenemos que transformar.
                 const json = await response.json();
                 setTodos(json);
             }
@@ -82,6 +76,71 @@ con eventos de formularios válidos.
         }
         
     }
+    
+    function swap(items:any, leftIndex:any, rightIndex:any){
+            var temp = items[leftIndex];
+            items[leftIndex] = items[rightIndex];
+            items[rightIndex] = temp;
+            var temp2 = TodoOrganize.text[leftIndex];
+            var temp3 = TodoOrganize.name[leftIndex];
+            TodoOrganize.text[leftIndex] = TodoOrganize.text[rightIndex];
+            TodoOrganize.name[leftIndex] = TodoOrganize.name[rightIndex];
+            TodoOrganize.text[rightIndex] = temp2;
+            TodoOrganize.name[rightIndex] = temp3;
+            setTodoOrganize({ ...TodoOrganize }); // Actualiza el estado
+    }
+    function partition(items:any, left:any, right:any) {
+        var pivot   = items[Math.floor((right + left) / 2)], //middle element
+            i       = left, //left pointer
+            j       = right; //right pointer
+        while (i <= j) {
+            while (items[i] < pivot) {
+                i++;
+            }
+            while (items[j] > pivot) {
+                j--;
+            }
+            if (i <= j) {
+                swap(items, i, j); //sawpping two elements
+                i++;
+                j--;
+            }
+        }
+        return i;
+    }
+    function quickSort(items:any, left:any, right:any) {
+        var index;
+        if (items.length > 1) {
+            index = partition(items, left, right); //index returned from partition
+            if (left < index - 1) { //more elements on the left side of the pivot
+                quickSort(items, left, index - 1);
+            }
+            if (index < right) { //more elements on the right side of the pivot
+                quickSort(items, index, right);
+            }
+        }
+        return items;
+    }
+    // first call to quick sort
+    function AllToDoOrganize(){
+        var item = auth.getAllToDoUsers();
+        item.forEach((i) => {
+            i.TodayDate.forEach((y) => {
+                const fechaUTC = new Date(y);
+                TodoOrganize.time.push(fechaUTC);
+                TodoOrganize.name.push(i.name);
+            });
+    
+        i.TodoString.forEach((z) => {
+            TodoOrganize.text.push(z);
+        });
+        var sortedArray = quickSort(TodoOrganize.time, 0, TodoOrganize.time.length - 1);
+        console.log("1 ", sortedArray);
+        console.log("2 ", TodoOrganize);
+    });
+    
+    }
+    
     
     return <div>
         <PortalLayout>
@@ -94,8 +153,8 @@ con eventos de formularios válidos.
                 value={title}/>
         </form>
         {
-            todos.map((todo)=>(
-                <div key={todo._id}>{todo.title}</div>))
+            todos.map((todo, index)=>(
+                <div key={index}>Tú: {todo.title} a las {todo.createdAt.toString()}</div>))
                 
         }
         
