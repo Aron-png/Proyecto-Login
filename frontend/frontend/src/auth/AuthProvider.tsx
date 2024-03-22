@@ -19,7 +19,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
     isAuthenticated: false,
     getAccessToken: () => "",
-    saveUser: (userData: AuthResponse) => {},
+    saveUser: () => {},
     getRefreshToken: () => null,
     getUser: () => undefined,
     signOut: () => {},
@@ -37,11 +37,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     useEffect(() => {
         checkAuth();
     }, []);
+    /*
     useEffect(()=>{
         RefreshToDo();
         console.log("respondeme, ",allToDo);
     }, [allToDo])
-
+    */
     async function requestNewAccessToken(refreshToken: string) {
         try {
             const response = await fetch(`${API_URL}/refreshToken`, {
@@ -196,26 +197,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
     async function RefreshToDo() {
         try {
             const YouRefreshToken: string | null = getRefreshToken();
-            if(YouRefreshToken!==null){
+            if (YouRefreshToken !== null) {
                 const allAccessToken = await getAllAccessToken(YouRefreshToken!);
                 if (allAccessToken.length > 0) {
                     const newToDos: ToDo[] = [];
                     await Promise.all(allAccessToken.map(async (item: string) => {
-                    const userName = await getUserInfo(item);//saca el nombre
-                    const todos = await getAllToDo(item);//saca el OBJETO To do's
-                    if (Array.isArray(todos)) {
-                        newToDos.push({
-                            name: userName.name,
-                            TodoString: todos.map((obj: { title: string }) => obj.title),
-                            TodayDate: todos.map((obj: { createdAt: Date }) => obj.createdAt)
-                        })
-                    }
+                        const userName = await getUserInfo(item); // saca el nombre
+                        const todos = await getAllToDo(item); // saca el OBJETO To do's
+                        if (Array.isArray(todos)) {
+                            newToDos.push({
+                                name: userName.name,
+                                TodoString: todos.map((obj: { title: string }) => obj.title),
+                                TodayDate: todos.map((obj: { createdAt: Date }) => obj.createdAt)
+                            })
+                        }
     
-                }));
-                setAllToDoFinally(newToDos);
-                
+                    }));
+                    setAllToDoFinally(newToDos);
+    
                 }
-            }else {
+            } else {
                 console.log("No hay access tokens disponibles.");
             }
         } catch (error) {
@@ -223,10 +224,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
     }
     
+    
     useEffect(() => {
         checkAuth()
             .then(() => setIsLoading(false))
             .catch(() => setIsError(true));
+        RefreshToDo();
     }, []);
 
     return (

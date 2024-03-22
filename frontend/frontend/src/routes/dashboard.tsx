@@ -22,7 +22,7 @@ export default function Dashboard(){
 
     useEffect(()=>{
         loadTodos();
-    },[]);
+    },[auth]);
     useEffect(() => {
         AllToDoOrganize();
         console.log("rpta: ",TodoOrganize);
@@ -80,57 +80,49 @@ export default function Dashboard(){
         
     }
     
-    function swap(items:any, leftIndex:any, rightIndex:any){
-            var temp = items[leftIndex];
-            items[leftIndex] = items[rightIndex];
-            items[rightIndex] = temp;
-            var temp2 = TodoOrganize.text[leftIndex];
-            var temp3 = TodoOrganize.name[leftIndex];
-            TodoOrganize.text[leftIndex] = TodoOrganize.text[rightIndex];
-            TodoOrganize.name[leftIndex] = TodoOrganize.name[rightIndex];
-            TodoOrganize.text[rightIndex] = temp2;
-            TodoOrganize.name[rightIndex] = temp3;
-            setTodoOrganize({ ...TodoOrganize }); // Actualiza el estado
+    function quickSort(items:any, left:any, right:any) {
+        var index;
+        if (left < right) {
+            index = partition(items, left, right); //index returned from partition
+            quickSort(items, left, index - 1);
+            quickSort(items, index, right);
+        }
     }
+    
     function partition(items:any, left:any, right:any) {
-        var pivot   = items[Math.floor((right + left) / 2)], //middle element
+        var pivot   = items[Math.floor((right + left) / 2)].time, //middle element
             i       = left, //left pointer
             j       = right; //right pointer
         while (i <= j) {
-            while (items[i] < pivot) {
+            while (items[i].time < pivot) {
                 i++;
             }
-            while (items[j] > pivot) {
+            while (items[j].time > pivot) {
                 j--;
             }
             if (i <= j) {
-                swap(items, i, j); //sawpping two elements
+                swap(items, i, j); //swapping two elements
                 i++;
                 j--;
             }
         }
         return i;
     }
-    function quickSort(items:any, left:any, right:any) {
-        var index;
-        if (items.length > 1) {
-            index = partition(items, left, right); //index returned from partition
-            if (left < index - 1) { //more elements on the left side of the pivot
-                quickSort(items, left, index - 1);
-            }
-            if (index < right) { //more elements on the right side of the pivot
-                quickSort(items, index, right);
-            }
-        }
+    
+    function swap(items:any, leftIndex:any, rightIndex:any) {
+        var temp = items[leftIndex];
+        items[leftIndex] = items[rightIndex];
+        items[rightIndex] = temp;
     }
-    // first call to quick sort
-    function AllToDoOrganize(){
+    
+    function AllToDoOrganize() {
         const newTodoOrganize = {
             time: [] as Date[],
             text: [] as string[],
             name: [] as string[]
         };
-        //Otros usuarios
+    
+        // Otros usuarios
         auth.getAllToDoUsers().forEach((i) => {
             i.TodayDate.forEach((y,index) => {
                 const fechaUTC = new Date(y);
@@ -139,19 +131,30 @@ export default function Dashboard(){
                 newTodoOrganize.text.push(i.TodoString[index]);
             });
         });
-        console.log("1 ", auth.getAllToDoUsers());
-        //MyToDo
+    
+        // MyToDo
         todos.forEach((i)=>{
             const fechaUTC = new Date(i.createdAt);
             newTodoOrganize.time.push(fechaUTC);
             newTodoOrganize.name.push("Tú");
             newTodoOrganize.text.push(i.title);
         });
-        console.log("2 ",newTodoOrganize);
-        quickSort(newTodoOrganize.time, 0, newTodoOrganize.time.length - 1);
-        // Elimina y Actualiza el estado TodoOrganize
-        setTodoOrganize(newTodoOrganize); 
+        // Clonamos el objeto para no modificarlo directamente
+        const sortedTodoOrganize = {...newTodoOrganize}; 
+        quickSort(sortedTodoOrganize.time, 0, sortedTodoOrganize.time.length - 1);
+    
+        // Reorganizar los arrays text y name de acuerdo al orden de time
+        // indexOf = devulve el indice del elemento que se busca en el []
+        sortedTodoOrganize.time.forEach((time, index) => {
+            const originalIndex = newTodoOrganize.time.indexOf(time);
+            sortedTodoOrganize.text[index] = newTodoOrganize.text[originalIndex];
+            sortedTodoOrganize.name[index] = newTodoOrganize.name[originalIndex];
+        });
+    
+        // Actualizar el estado TodoOrganize
+        setTodoOrganize(sortedTodoOrganize);
     }
+    
     
     return <div>
         <PortalLayout>
