@@ -28,8 +28,9 @@ router.get('/', async (req, res) => {
         }
         // Obtener el ID del usuario autenticado desde el token de refresh
         const userId = payload.user.id;
-        // Buscar todos los usuarios excepto el usuario autenticado
-        const users = await User.find({ _id: { $ne: userId } });
+        // Busca a todos los usuarios - busca a todos menos al autenticado
+        // El de abajo - .find({ _id: { $ne: userId } });
+        const users = await User.find({});
 
         // Crear un arreglo para almacenar los accessTokens
         const accessTokens = [];

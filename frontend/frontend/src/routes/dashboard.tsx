@@ -2,32 +2,26 @@ import { useEffect, useState } from "react";
 import {useAuth} from "../auth/AuthProvider";
 import { API_URL } from "../auth/constants";
 import PortalLayout from "../layout/PortalLayout";
-interface MyTodo{
-    _id: string,
-    title: string,
-    completed: boolean,
-    idUser:string,
-    createdAt: Date
-}
+import type { ToDo } from "../types/types";
+
 export default function Dashboard(){
-    
-    const [todos, setTodos] = useState<MyTodo[]>([]);
+    //Estado adicional para controlar si AllToDoOrganize() ya se ejecutó
+    const [RunCode, setRunCode] = useState(false); 
+    const [allToDo, setAllToDoFinally] = useState<ToDo[]>([]);
     const [title, setTitle] = useState("");
     const auth = useAuth();
+    //Se transforma el ToDo[] en array para organizarlo.
     const [TodoOrganize, setTodoOrganize] = useState({
         time: [] as Date[],
         text: [] as string[],
         name: [] as string[]
     });
 
-    useEffect(()=>{
-        loadTodos();
-    },[auth]);
+/*
     useEffect(() => {
-        AllToDoOrganize();
-        console.log("rpta: ",TodoOrganize);
-    }, [todos]);// Actualiza TodoOrganize cuando cambia todos
-
+        RefreshToDo();
+    }, []);
+*/
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         createTodo();
@@ -48,7 +42,9 @@ export default function Dashboard(){
 
             if(response.ok){
                 const json = await response.json();
-                setTodos([json, ...todos]);
+                setAllToDoFinally([json, ...allToDo]);
+                // Llamar a RefreshToDo() después de crear un nuevo ToDo
+                await RefreshToDo();
             }
               
 
@@ -57,27 +53,85 @@ export default function Dashboard(){
         }
         
     }
-    //llama los To Do's
-    async function loadTodos(){
-        try {
-            const response = await fetch(`${API_URL}/todos`,{
-                headers:{
-                    "Content-Type":"application/json",
-                    Authorization: `Bearer ${auth.getAccessToken()}`,
 
+    async function getAllAccessToken(refreshToken: string) {
+        try {
+            const response = await fetch(`${API_URL}/allAccessTokens`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${refreshToken}`,
                 },
             });
-
-            if(response.ok){
+            if (response.ok) {
                 const json = await response.json();
-                setTodos(json);
-            }
-             
+                if (json.error) {
+                    throw new Error(json.error);
+                }
+                return json.accessTokens;
 
+            } else {
+                throw new Error(response.statusText);
+            }
         } catch (error) {
-            console.error("Error al buscar todos:", error);
+            console.log(error);
+            return null;
         }
-        
+    }
+
+    async function getAllToDo(accessToken: string) {
+        try {
+            const response = await fetch(`${API_URL}/todos`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${accessToken}`,
+                },
+            });
+            if (response.ok) {
+                const json = await response.json();
+                if (json.error) {
+                    throw new Error(json.error);
+                }
+                return json;
+
+            } else {
+                throw new Error(response.statusText);
+            }
+        } catch (error) {
+            console.log(error);
+            return null;
+        }
+    }
+
+    async function RefreshToDo() {
+        try {
+            const YouRefreshToken: string | null = auth.getRefreshToken();
+            if (YouRefreshToken !== null) {
+                const allAccessToken = await getAllAccessToken(YouRefreshToken!);
+                if (allAccessToken.length > 0) {
+                    const newToDos: ToDo[] = [];
+                    await Promise.all(allAccessToken.map(async (item: string) => {
+                        const userName = await auth.getUserInfo(item); // saca el nombre
+                        const todos = await getAllToDo(item); // saca el OBJETO To do's
+                        if (Array.isArray(todos)) {
+                            newToDos.push({
+                                name: userName.name,
+                                TodoString: todos.map((obj: { title: string }) => obj.title),
+                                TodayDate: todos.map((obj: { createdAt: Date }) => obj.createdAt)
+                            })
+                        }
+    
+                    }));
+                    setAllToDoFinally(newToDos);
+    
+                }
+            } else {
+                console.log("No hay access tokens disponibles.");
+            }
+        } catch (error) {
+            console.error("Error al refrescar los ToDos:", error);
+        }
     }
     
     function quickSort(items:any, left:any, right:any) {
@@ -123,38 +177,67 @@ export default function Dashboard(){
         };
     
         // Otros usuarios
-        auth.getAllToDoUsers().forEach((i) => {
-            i.TodayDate.forEach((y,index) => {
-                const fechaUTC = new Date(y);
-                newTodoOrganize.time.push(fechaUTC);
-                newTodoOrganize.name.push(i.name);
-                newTodoOrganize.text.push(i.TodoString[index]);
-            });
+        allToDo.forEach((i) => {
+            // Verificar si TodayDate está definido y es un array
+            if (Array.isArray(i.TodayDate)) {
+                i.TodayDate.forEach((y,index) => {
+                    const fechaUTC = new Date(y);
+                    newTodoOrganize.time.push(fechaUTC);
+                    newTodoOrganize.name.push(i.name);
+                    newTodoOrganize.text.push(i.TodoString[index]);
+                });
+            }
         });
     
-        // MyToDo
-        todos.forEach((i)=>{
-            const fechaUTC = new Date(i.createdAt);
-            newTodoOrganize.time.push(fechaUTC);
-            newTodoOrganize.name.push("Tú");
-            newTodoOrganize.text.push(i.title);
-        });
         // Clonamos el objeto para no modificarlo directamente
-        const sortedTodoOrganize = {...newTodoOrganize}; 
+        const sortedTodoOrganize = {...newTodoOrganize};
         quickSort(sortedTodoOrganize.time, 0, sortedTodoOrganize.time.length - 1);
     
         // Reorganizar los arrays text y name de acuerdo al orden de time
         // indexOf = devulve el indice del elemento que se busca en el []
-        sortedTodoOrganize.time.forEach((time, index) => {
-            const originalIndex = newTodoOrganize.time.indexOf(time);
-            sortedTodoOrganize.text[index] = newTodoOrganize.text[originalIndex];
-            sortedTodoOrganize.name[index] = newTodoOrganize.name[originalIndex];
+        newTodoOrganize.time.forEach((item, index) => {
+            const aux = sortedTodoOrganize.time.indexOf(item);
+            const temp = sortedTodoOrganize.text[index];
+            sortedTodoOrganize.text[index] = sortedTodoOrganize.text[aux];
+            sortedTodoOrganize.text[aux] = temp;
+            const temp2 = sortedTodoOrganize.name[index];
+            sortedTodoOrganize.name[index] = sortedTodoOrganize.name[aux];
+            sortedTodoOrganize.name[aux] = temp2;
         });
     
         // Actualizar el estado TodoOrganize
         setTodoOrganize(sortedTodoOrganize);
     }
+    /*
+    useEffect(() => {
+        AllToDoOrganize();
+        ------
+        const fetchData = async () => {
+            await RefreshToDo();
+            AllToDoOrganize();
+        };
+        fetchData();
+        ------
+        console.log("rpta: ",TodoOrganize);
+    }, [allToDo]);
+    */
+    useEffect(() => {
+        const fetchData = async () => {
+            await RefreshToDo();
+            setRunCode(true); // Marcar que AllToDoOrganize() se ha ejecutado
+        };
+        fetchData();
+    }, []);
     
+    useEffect(() => {
+        if (RunCode) {
+            AllToDoOrganize();
+        }
+        console.log("rpta: ",TodoOrganize);
+    }, [allToDo, RunCode]);
+    
+    
+     
     
     return <div>
         <PortalLayout>
@@ -167,12 +250,8 @@ export default function Dashboard(){
                 value={title}/>
         </form>
         {
-        /*
-            todos.map((todo, index)=>(
-                <div key={index}>Tú: {todo.title} a las {todo.createdAt.toString()}</div>))
-        */  TodoOrganize.text.map((text, index) => (
-            <div key={index}>{TodoOrganize.name[index]}:  
-            {text} a las {TodoOrganize.time[index].toString()}</div>
+             TodoOrganize.text.map((text, index) => (
+            <div key={index}>{TodoOrganize.name[index]}:   {text} a las {TodoOrganize.time[index].toString()}</div>
             ))
         }
         

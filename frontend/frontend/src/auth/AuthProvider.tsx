@@ -1,5 +1,5 @@
 import { useContext, createContext, useState, useEffect } from "react";
-import type { AuthResponse, AccessTokenResponse, User, ToDo } from "../types/types";
+import type { AuthResponse, AccessTokenResponse, User } from "../types/types";
 import { API_URL } from "./constants";
 
 interface AuthProviderProps {
@@ -13,7 +13,7 @@ interface AuthContextType {
     getRefreshToken: () => string | null;
     getUser: () => User | undefined;
     signOut: () => void;
-    getAllToDoUsers: () => ToDo[];
+    getUserInfo: (accessToken: string) => Promise<any>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -23,7 +23,7 @@ const AuthContext = createContext<AuthContextType>({
     getRefreshToken: () => null,
     getUser: () => undefined,
     signOut: () => {},
-    getAllToDoUsers: () => [],
+    getUserInfo: () => Promise.resolve<any>(null),
 });
 
 export function AuthProvider({ children }: AuthProviderProps) {
@@ -32,17 +32,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [accessToken, setAccessToken] = useState("");
     const [user, setUser] = useState<User>();
-    const [allToDo, setAllToDoFinally] = useState<ToDo[]>([]);
 
     useEffect(() => {
         checkAuth();
     }, []);
-    /*
-    useEffect(()=>{
-        RefreshToDo();
-        console.log("respondeme, ",allToDo);
-    }, [allToDo])
-    */
+    
     async function requestNewAccessToken(refreshToken: string) {
         try {
             const response = await fetch(`${API_URL}/refreshToken`, {
@@ -121,10 +115,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return user;
     }
 
-    function getAllToDoUsers() {
-        return allToDo;
-    }
-
     function getRefreshToken(): string | null {
         return localStorage.getItem("token");
     }
@@ -144,96 +134,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
         );
     }
 
-    async function getAllAccessToken(refreshToken: string) {
-        try {
-            const response = await fetch(`${API_URL}/allAccessTokens`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${refreshToken}`,
-                },
-            });
-            if (response.ok) {
-                const json = await response.json();
-                if (json.error) {
-                    throw new Error(json.error);
-                }
-                return json.accessTokens;
-
-            } else {
-                throw new Error(response.statusText);
-            }
-        } catch (error) {
-            console.log(error);
-            return null;
-        }
-    }
-
-    async function getAllToDo(accessToken: string) {
-        try {
-            const response = await fetch(`${API_URL}/todos`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${accessToken}`,
-                },
-            });
-            if (response.ok) {
-                const json = await response.json();
-                if (json.error) {
-                    throw new Error(json.error);
-                }
-                return json;
-
-            } else {
-                throw new Error(response.statusText);
-            }
-        } catch (error) {
-            console.log(error);
-            return null;
-        }
-    }
-
-    async function RefreshToDo() {
-        try {
-            const YouRefreshToken: string | null = getRefreshToken();
-            if (YouRefreshToken !== null) {
-                const allAccessToken = await getAllAccessToken(YouRefreshToken!);
-                if (allAccessToken.length > 0) {
-                    const newToDos: ToDo[] = [];
-                    await Promise.all(allAccessToken.map(async (item: string) => {
-                        const userName = await getUserInfo(item); // saca el nombre
-                        const todos = await getAllToDo(item); // saca el OBJETO To do's
-                        if (Array.isArray(todos)) {
-                            newToDos.push({
-                                name: userName.name,
-                                TodoString: todos.map((obj: { title: string }) => obj.title),
-                                TodayDate: todos.map((obj: { createdAt: Date }) => obj.createdAt)
-                            })
-                        }
     
-                    }));
-                    setAllToDoFinally(newToDos);
-    
-                }
-            } else {
-                console.log("No hay access tokens disponibles.");
-            }
-        } catch (error) {
-            console.error("Error al refrescar los ToDos:", error);
-        }
-    }
     
     
     useEffect(() => {
         checkAuth()
             .then(() => setIsLoading(false))
             .catch(() => setIsError(true));
-        RefreshToDo();
+        //RefreshToDo();
     }, []);
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, getAccessToken, saveUser, getRefreshToken, getUser, signOut, getAllToDoUsers }}>
+        <AuthContext.Provider value={{ isAuthenticated, getAccessToken, saveUser, getRefreshToken, getUser, signOut, 
+        getUserInfo }}>
             {isError ? (
                 <div>Error al cargar los datos</div>
             ) : isLoading ? (
