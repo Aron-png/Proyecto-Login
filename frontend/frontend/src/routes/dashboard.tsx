@@ -3,6 +3,7 @@ import {useAuth} from "../auth/AuthProvider";
 import { API_URL } from "../auth/constants";
 import PortalLayout from "../layout/PortalLayout";
 import type { ToDo } from "../types/types";
+import './Styles/dashboard.css';
 
 export default function Dashboard(){
     //Estado adicional para controlar si AllToDoOrganize() ya se ejecutó
@@ -141,17 +142,24 @@ export default function Dashboard(){
             aaron - hola - 2:44
             aaron - k tal? - 2:43
             Men - Bien. - 2:45
+            
+            Necesario tenerlo así, recordemos que el allToDo es una lista de arrays:
+            {name: 'Bommer', TodoString: Array(2), TodayDate: Array(2)}
+        
         flatMap:
         La función proporcionada se ejecuta una vez por cada elemento del array original 
         y el valor devuelto por la función se agrega al nuevo array resultante.
+        
         sort:
         Ordena de mayor a menor porque si b - a es un valor positivo, entonces b debería
         ir antes que a.
+        
         Array.isArray:
         Se experimentó un problema, a veces allToDo tenía un valor indefinido, por éso
         no se puede usar el "map". Por éso se agrega comprobantes para ver si esta
         definido.
         */
+       
         if (Array.isArray(allToDo)) {
             const flatItems = allToDo
                 .flatMap(item =>
@@ -196,21 +204,51 @@ export default function Dashboard(){
     
     return <div>
         <PortalLayout>
-        <h1>Dashboard de {auth.getUser()?.name || ""}</h1>
+        <br></br>
+        <div className="EstiloBoton">Hola {auth.getUser()?.name || ""}</div>
+        ¿Desea agregar algún comentario?
+        <br></br>
         <form onSubmit={handleSubmit}>
-            <input type="text" placeholder="Nuevo To do..." onChange=
+            
+                <input type="text" placeholder="Nuevo To do..." onChange=
                 {
                 (e)=>setTitle(e.target.value)
                 } 
                 value={title}/>
+                
         </form>
+        <div className="card">
         {
+            
              TodoOrganize.text.map((text, index) => (
-            <div key={index}>{TodoOrganize.name[index]}:   {text} a las {TodoOrganize.time[index].toString()}</div>
+            <div key={index}>
+                <div className="card-header">{TodoOrganize.name[index]}</div>
+                <div className="card-body">
+                    <blockquote className="blockquote mb-0">
+                        <p className="card-text">
+                            {text}
+                        </p> 
+                        <footer className="blockquote-footer">
+                            {TodoOrganize.time[index].toLocaleString(
+                            "es-ES", {
+                            weekday: 'short',
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: 'numeric',
+                            minute: 'numeric',
+                            second: 'numeric'
+                            }
+                            )}
+                        </footer>
+                    </blockquote>
+                </div>
+            </div>
             ))
+            
         }
-        
-        
+        </div>
+        <br></br>
         </PortalLayout>
     </div>;
 
