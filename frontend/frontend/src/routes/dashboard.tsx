@@ -17,11 +17,6 @@ export default function Dashboard(){
         name: [] as string[]
     });
 
-/*
-    useEffect(() => {
-        RefreshToDo();
-    }, []);
-*/
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         createTodo();
@@ -134,52 +129,53 @@ export default function Dashboard(){
         }
     }
     
-    
-    
     function AllToDoOrganize() {
         const newTodoOrganize: { time: Date[]; text: string[]; name: string[] } = {
             time: [],
             text: [],
             name: [],
         };
-    
-        // Convierte una lista de objetos en una lista de arrays:
-        allToDo.forEach((i) => {
-            // Verificar si TodayDate está definido y es un array
-            if (Array.isArray(i.TodayDate)) {
-                i.TodayDate.forEach((y, index) => {
-                    const fechaUTC = new Date(y);
-                    newTodoOrganize.time.push(fechaUTC);
-                    newTodoOrganize.name.push(i.name);
-                    newTodoOrganize.text.push(i.TodoString[index]);
-                });
-            }
-        });
-    
-        // Crear una copia del array de fechas
-        const todoData = [...newTodoOrganize.time];
-
-        // Ordenar el array de fechas de mayor a menor
-        todoData.sort((a, b) => b.getTime() - a.getTime());
-
-
-        newTodoOrganize.time.forEach((item, index) => {
-            const changeIndex = todoData.findIndex(data => data.getTime() === item.getTime());
-            if(changeIndex !== -1){
-                const temp1 = newTodoOrganize.text[index];
-                newTodoOrganize.text[index] = newTodoOrganize.text[changeIndex];
-                newTodoOrganize.text[changeIndex] = temp1;
-
-                const temp2 = newTodoOrganize.name[index];
-                newTodoOrganize.name[index] = newTodoOrganize.name[changeIndex];
-                newTodoOrganize.name[changeIndex] = temp2;
-            }
-        });
-        newTodoOrganize.time = todoData;
-    
-        // Actualizar el estado TodoOrganize
-        setTodoOrganize(newTodoOrganize);
+        /*
+        - Crea una lista de objetos repetidos y ordena la fecha de mayor a menor.
+        Ejemplo:
+            aaron - hola - 2:44
+            aaron - k tal? - 2:43
+            Men - Bien. - 2:45
+        flatMap:
+        La función proporcionada se ejecuta una vez por cada elemento del array original 
+        y el valor devuelto por la función se agrega al nuevo array resultante.
+        sort:
+        Ordena de mayor a menor porque si b - a es un valor positivo, entonces b debería
+        ir antes que a.
+        Array.isArray:
+        Se experimentó un problema, a veces allToDo tenía un valor indefinido, por éso
+        no se puede usar el "map". Por éso se agrega comprobantes para ver si esta
+        definido.
+        */
+        if (Array.isArray(allToDo)) {
+            const flatItems = allToDo
+                .flatMap(item =>
+                    Array.isArray(item.TodayDate) ? item.TodayDate.map((date, index) => ({
+                        time: new Date(date),
+                        text: Array.isArray(item.TodoString) ? item.TodoString[index] : '',
+                        name: item.name
+                    })) : []
+                )
+                .sort((a, b) => b.time.getTime() - a.time.getTime());
+            
+            flatItems.forEach((item) => {
+                newTodoOrganize.time.push(item.time);
+                newTodoOrganize.text.push(item.text);
+                newTodoOrganize.name.push(item.name);
+            });
+            
+            // Actualizar el estado TodoOrganize
+            setTodoOrganize(newTodoOrganize);
+        } else {
+            console.error('allToDo no es un array definido.');
+        }
     }
+    
     
 
     useEffect(() => {
