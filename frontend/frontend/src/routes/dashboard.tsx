@@ -139,8 +139,9 @@ export default function Dashboard(){
         if (left < right) {
             index = partition(items, left, right); //index returned from partition
             quickSort(items, left, index - 1);
-            quickSort(items, index, right);
+            quickSort(items, index + 1, right);//CAMBIO index
         }
+        return items;
     }
     
     function partition(items:any, left:any, right:any) {
@@ -148,10 +149,10 @@ export default function Dashboard(){
             i       = left, //left pointer
             j       = right; //right pointer
         while (i <= j) {
-            while (items[i].time < pivot) {
+            while (items[i].time > pivot) {//CAMBIO <
                 i++;
             }
-            while (items[j].time > pivot) {
+            while (items[j].time < pivot) {//CAMBIO >
                 j--;
             }
             if (i <= j) {
@@ -170,17 +171,17 @@ export default function Dashboard(){
     }
     
     function AllToDoOrganize() {
-        const newTodoOrganize = {
-            time: [] as Date[],
-            text: [] as string[],
-            name: [] as string[]
+        const newTodoOrganize: { time: Date[]; text: string[]; name: string[] } = {
+            time: [],
+            text: [],
+            name: [],
         };
     
         // Otros usuarios
         allToDo.forEach((i) => {
             // Verificar si TodayDate está definido y es un array
             if (Array.isArray(i.TodayDate)) {
-                i.TodayDate.forEach((y,index) => {
+                i.TodayDate.forEach((y, index) => {
                     const fechaUTC = new Date(y);
                     newTodoOrganize.time.push(fechaUTC);
                     newTodoOrganize.name.push(i.name);
@@ -189,38 +190,28 @@ export default function Dashboard(){
             }
         });
     
-        // Clonamos el objeto para no modificarlo directamente
-        const sortedTodoOrganize = {...newTodoOrganize};
-        quickSort(sortedTodoOrganize.time, 0, sortedTodoOrganize.time.length - 1);
+        // Crear un nuevo array de objetos con los datos asociados
+        const todoData = newTodoOrganize.time.map((time, index) => ({
+            time,
+            name: newTodoOrganize.name[index],
+            text: newTodoOrganize.text[index],
+        }));
     
-        // Reorganizar los arrays text y name de acuerdo al orden de time
-        // indexOf = devulve el indice del elemento que se busca en el []
-        newTodoOrganize.time.forEach((item, index) => {
-            const aux = sortedTodoOrganize.time.indexOf(item);
-            const temp = sortedTodoOrganize.text[index];
-            sortedTodoOrganize.text[index] = sortedTodoOrganize.text[aux];
-            sortedTodoOrganize.text[aux] = temp;
-            const temp2 = sortedTodoOrganize.name[index];
-            sortedTodoOrganize.name[index] = sortedTodoOrganize.name[aux];
-            sortedTodoOrganize.name[aux] = temp2;
-        });
+        // Ordenar el array de objetos por tiempo (de mayor a menor)
+        todoData.sort((a, b) => b.time.getTime() - a.time.getTime());
+    
+        // Actualizar el estado TodoOrganize con los datos ordenados correctamente
+        const sortedTodoOrganize = {
+            time: todoData.map((data) => data.time),
+            name: todoData.map((data) => data.name),
+            text: todoData.map((data) => data.text),
+        };
     
         // Actualizar el estado TodoOrganize
         setTodoOrganize(sortedTodoOrganize);
     }
-    /*
-    useEffect(() => {
-        AllToDoOrganize();
-        ------
-        const fetchData = async () => {
-            await RefreshToDo();
-            AllToDoOrganize();
-        };
-        fetchData();
-        ------
-        console.log("rpta: ",TodoOrganize);
-    }, [allToDo]);
-    */
+    
+
     useEffect(() => {
         const fetchData = async () => {
             await RefreshToDo();
@@ -233,10 +224,10 @@ export default function Dashboard(){
         if (RunCode) {
             AllToDoOrganize();
         }
-        console.log("rpta: ",TodoOrganize);
+        
     }, [allToDo, RunCode]);
     
-    
+    console.log("rpta 2: ",TodoOrganize);
      
     
     return <div>
