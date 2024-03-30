@@ -134,41 +134,7 @@ export default function Dashboard(){
         }
     }
     
-    function quickSort(items:any, left:any, right:any) {
-        var index;
-        if (left < right) {
-            index = partition(items, left, right); //index returned from partition
-            quickSort(items, left, index - 1);
-            quickSort(items, index + 1, right);//CAMBIO index
-        }
-        return items;
-    }
     
-    function partition(items:any, left:any, right:any) {
-        var pivot   = items[Math.floor((right + left) / 2)].time, //middle element
-            i       = left, //left pointer
-            j       = right; //right pointer
-        while (i <= j) {
-            while (items[i].time > pivot) {//CAMBIO <
-                i++;
-            }
-            while (items[j].time < pivot) {//CAMBIO >
-                j--;
-            }
-            if (i <= j) {
-                swap(items, i, j); //swapping two elements
-                i++;
-                j--;
-            }
-        }
-        return i;
-    }
-    
-    function swap(items:any, leftIndex:any, rightIndex:any) {
-        var temp = items[leftIndex];
-        items[leftIndex] = items[rightIndex];
-        items[rightIndex] = temp;
-    }
     
     function AllToDoOrganize() {
         const newTodoOrganize: { time: Date[]; text: string[]; name: string[] } = {
@@ -177,7 +143,7 @@ export default function Dashboard(){
             name: [],
         };
     
-        // Otros usuarios
+        // Convierte una lista de objetos en una lista de arrays:
         allToDo.forEach((i) => {
             // Verificar si TodayDate está definido y es un array
             if (Array.isArray(i.TodayDate)) {
@@ -190,25 +156,29 @@ export default function Dashboard(){
             }
         });
     
-        // Crear un nuevo array de objetos con los datos asociados
-        const todoData = newTodoOrganize.time.map((time, index) => ({
-            time,
-            name: newTodoOrganize.name[index],
-            text: newTodoOrganize.text[index],
-        }));
-    
-        // Ordenar el array de objetos por tiempo (de mayor a menor)
-        todoData.sort((a, b) => b.time.getTime() - a.time.getTime());
-    
-        // Actualizar el estado TodoOrganize con los datos ordenados correctamente
-        const sortedTodoOrganize = {
-            time: todoData.map((data) => data.time),
-            name: todoData.map((data) => data.name),
-            text: todoData.map((data) => data.text),
-        };
+        // Crear una copia del array de fechas
+        const todoData = [...newTodoOrganize.time];
+
+        // Ordenar el array de fechas de mayor a menor
+        todoData.sort((a, b) => b.getTime() - a.getTime());
+
+
+        newTodoOrganize.time.forEach((item, index) => {
+            const changeIndex = todoData.findIndex(data => data.getTime() === item.getTime());
+            if(changeIndex !== -1){
+                const temp1 = newTodoOrganize.text[index];
+                newTodoOrganize.text[index] = newTodoOrganize.text[changeIndex];
+                newTodoOrganize.text[changeIndex] = temp1;
+
+                const temp2 = newTodoOrganize.name[index];
+                newTodoOrganize.name[index] = newTodoOrganize.name[changeIndex];
+                newTodoOrganize.name[changeIndex] = temp2;
+            }
+        });
+        newTodoOrganize.time = todoData;
     
         // Actualizar el estado TodoOrganize
-        setTodoOrganize(sortedTodoOrganize);
+        setTodoOrganize(newTodoOrganize);
     }
     
 
@@ -226,9 +196,7 @@ export default function Dashboard(){
         }
         
     }, [allToDo, RunCode]);
-    
-    console.log("rpta 2: ",TodoOrganize);
-     
+       
     
     return <div>
         <PortalLayout>
